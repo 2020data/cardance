@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👑 專屬慶祝「上車舞」卡通派對產生器 🎉</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --beat-duration: 0.468s; /* ~128 BPM */
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: radial-gradient(circle at 50% 20%, #2e1065 0%, #0f172a 75%, #020617 100%);
+            color: #fff;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* 舞台霓虹與燈光特效 */
+        .stage-container {
+            background: linear-gradient(180deg, #1e1b4b 0%, #311042 55%, #1e1b4b 75%, #0f172a 100%);
+            box-shadow: 0 0 50px rgba(236, 72, 153, 0.35), inset 0 0 60px rgba(56, 189, 248, 0.25);
+        }
+
+        .stage-floor {
+            background: repeating-linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0.04) 0px,
+                rgba(255, 255, 255, 0.04) 40px,
+                transparent 40px,
+                transparent 80px
+            ),
+            linear-gradient(180deg, rgba(236, 72, 153, 0.35) 0%, rgba(15, 23, 42, 0.95) 100%);
+            transform: perspective(300px) rotateX(25deg);
+            transform-origin: bottom;
+        }
+
+        .spotlight {
+            pointer-events: none;
+            mix-blend-mode: screen;
+            transform-origin: top center;
+            animation: spotlight-sway 4s ease-in-out infinite alternate;
+        }
+        .spotlight-2 {
+            animation-delay: -2s;
+            animation-duration: 3.5s;
+        }
+        @keyframes spotlight-sway {
+            0% { transform: rotate(-18deg) scaleX(1); opacity: 0.55; }
+            50% { opacity: 0.85; }
+            100% { transform: rotate(18deg) scaleX(1.15); opacity: 0.55; }
+        }
+
+        /* 燈泡閃爍 */
+        .marquee-bulb {
+            animation: bulb-flash 0.936s infinite alternate;
+        }
+        .marquee-bulb:nth-child(even) {
+            animation-delay: 0.468s;
+        }
+        @keyframes bulb-flash {
+            0% { opacity: 0.35; transform: scale(0.85); box-shadow: 0 0 4px #fde047; }
+            100% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 14px #fde047, 0 0 24px #f59e0b; }
+        }
+
+        /* ================= 卡通人物與編舞動畫 ================= */
+        .dancer-wrapper {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transform-origin: bottom center;
+        }
+        .dancer-svg {
+            overflow: visible;
+        }
+        .body-group, .head-group, .arm-left, .arm-right, .crown-group, .leg-left, .leg-right {
+            transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .head-group { transform-origin: 100px 115px; }
+        .body-group { transform-origin: 100px 185px; }
+        .arm-left   { transform-origin: 68px 132px; }
+        .arm-right  { transform-origin: 132px 132px; }
+        .leg-left   { transform-origin: 84px 190px; }
+        .leg-right  { transform-origin: 116px 190px; }
+        .crown-group { transform-origin: 100px 45px; }
+
+        /* Pose 0: 待機律動 (Idle) */
+        .pose-idle .body-group {
+            animation: idle-bounce 0.936s ease-in-out infinite alternate;
+        }
+        .pose-idle .head-group {
+            animation: idle-head 0.936s ease-in-out infinite alternate;
+        }
+        .pose-idle .arm-left { transform: rotate(18deg); }
+        .pose-idle .arm-right { transform: rotate(-18deg); }
+
+        @keyframes idle-bounce {
+            0% { transform: translateY(0px) scaleY(1); }
+            100% { transform: translateY(6px) scaleY(0.97); }
+        }
+        @keyframes idle-head {
+            0% { transform: rotate(-3deg) translateY(0px); }
+            100% { transform: rotate(3deg) translateY(4px); }
+        }
+
+        /* Move 1: 我們來接你們了 (開車方向盤 + 熱情招手) */
+        .pose-move1 .body-group {
+            animation: beat-bounce 0.468s cubic-bezier(0.36, 0, 0.66, -0.56) infinite alternate;
+        }
+        .pose-move1 .head-group {
+            animation: head-bop-1 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move1 .arm-left {
+            animation: drive-left 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move1 .arm-right {
+            animation: drive-right 0.468s ease-in-out infinite alternate;
+        }
+        @keyframes beat-bounce {
+            0% { transform: translateY(0px) scale(1, 1); }
+            100% { transform: translateY(10px) scale(1.04, 0.95); }
+        }
+        @keyframes head-bop-1 {
+            0% { transform: rotate(-8deg) translateY(-2px); }
+            100% { transform: rotate(8deg) translateY(5px); }
+        }
+        @keyframes drive-left {
+            0% { transform: rotate(-55deg) translateY(-6px); }
+            100% { transform: rotate(-95deg) translateY(4px); }
+        }
+        @keyframes drive-right {
+            0% { transform: rotate(95deg) translateY(4px); }
+            100% { transform: rotate(55deg) translateY(-6px); }
+        }
+
+        /* Move 2: 來囉來囉！快趕快 (雙手歡呼搖擺 + 吉祥物衝刺過場) */
+        .pose-move2 .body-group {
+            animation: fast-jump 0.234s ease-in-out infinite alternate;
+        }
+        .pose-move2 .head-group {
+            animation: head-excited 0.234s ease-in-out infinite alternate;
+        }
+        .pose-move2 .arm-left {
+            animation: wave-high-left 0.234s ease-in-out infinite alternate;
+        }
+        .pose-move2 .arm-right {
+            animation: wave-high-right 0.234s ease-in-out infinite alternate;
+        }
+        .pose-move2 .leg-left {
+            animation: leg-kick-left 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move2 .leg-right {
+            animation: leg-kick-right 0.468s ease-in-out infinite alternate;
+        }
+        @keyframes fast-jump {
+            0% { transform: translateY(-8px) scaleY(1.03); }
+            100% { transform: translateY(6px) scaleY(0.95); }
+        }
+        @keyframes head-excited {
+            0% { transform: translateY(-6px) scale(1.03); }
+            100% { transform: translateY(4px) scale(0.98); }
+        }
+        @keyframes wave-high-left {
+            0% { transform: rotate(-125deg); }
+            100% { transform: rotate(-155deg); }
+        }
+        @keyframes wave-high-right {
+            0% { transform: rotate(125deg); }
+            100% { transform: rotate(155deg); }
+        }
+        @keyframes leg-kick-left {
+            0% { transform: rotate(18deg) translateY(-4px); }
+            100% { transform: rotate(-5deg); }
+        }
+        @keyframes leg-kick-right {
+            0% { transform: rotate(5deg); }
+            100% { transform: rotate(-18deg) translateY(-4px); }
+        }
+
+        /* Move 3: 可愛可愛 / 動作快 / 好會排 (戳臉頰貓咪手 + 左右扭腰) */
+        .pose-move3 .body-group {
+            animation: cute-sway-body 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move3 .head-group {
+            animation: cute-sway-head 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move3 .arm-left {
+            animation: cheek-poke-left 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move3 .arm-right {
+            animation: cheek-poke-right 0.468s ease-in-out infinite alternate;
+        }
+        @keyframes cute-sway-body {
+            0% { transform: rotate(-7deg) translateX(-5px) translateY(4px); }
+            100% { transform: rotate(7deg) translateX(5px) translateY(4px); }
+        }
+        @keyframes cute-sway-head {
+            0% { transform: rotate(-14deg) translateY(2px); }
+            100% { transform: rotate(14deg) translateY(2px); }
+        }
+        @keyframes cheek-poke-left {
+            0% { transform: rotate(-110deg) translate(12px, -8px); }
+            100% { transform: rotate(-95deg) translate(16px, -2px); }
+        }
+        @keyframes cheek-poke-right {
+            0% { transform: rotate(95deg) translate(-16px, -2px); }
+            100% { transform: rotate(110deg) translate(-12px, -8px); }
+        }
+
+        /* Move 4: 皇冠就給 [名字] 戴！👑 (雙手托舉加冕動作 + 皇冠降臨) */
+        .pose-move4 .body-group {
+            animation: crown-bounce 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move4 .head-group {
+            animation: crown-head 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move4 .arm-left {
+            animation: crown-arm-left 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move4 .arm-right {
+            animation: crown-arm-right 0.468s ease-in-out infinite alternate;
+        }
+        @keyframes crown-bounce {
+            0% { transform: translateY(0px) scale(1.03); }
+            100% { transform: translateY(6px) scale(0.98); }
+        }
+        @keyframes crown-head {
+            0% { transform: translateY(-3px) rotate(-3deg); }
+            100% { transform: translateY(3px) rotate(3deg); }
+        }
+        @keyframes crown-arm-left {
+            0% { transform: rotate(-140deg) translateX(8px); }
+            100% { transform: rotate(-155deg) translateX(12px); }
+        }
+        @keyframes crown-arm-right {
+            0% { transform: rotate(140deg) translateX(-8px); }
+            100% { transform: rotate(155deg) translateX(-12px); }
+        }
+
+        /* Move 5: 哇塞哇塞！閃閃發光惹人愛✨ (霸氣秀肌肉 / 大愛心手勢 + 閃耀跳躍) */
+        .pose-move5 .body-group {
+            animation: star-jump 0.468s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate;
+        }
+        .pose-move5 .head-group {
+            animation: star-head 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move5 .arm-left {
+            animation: flex-arm-left 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move5 .arm-right {
+            animation: flex-arm-right 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move5 .leg-left {
+            animation: leg-star-left 0.468s ease-in-out infinite alternate;
+        }
+        .pose-move5 .leg-right {
+            animation: leg-star-right 0.468s ease-in-out infinite alternate;
+        }
+        @keyframes star-jump {
+            0% { transform: translateY(-12px) scale(1.05); }
+            100% { transform: translateY(6px) scale(0.96); }
+        }
+        @keyframes star-head {
+            0% { transform: rotate(-10deg) scale(1.06); }
+            100% { transform: rotate(10deg) scale(1); }
+        }
+        @keyframes flex-arm-left {
+            0% { transform: rotate(-120deg) scaleY(1.05); }
+            100% { transform: rotate(-65deg) scaleY(0.95); }
+        }
+        @keyframes flex-arm-right {
+            0% { transform: rotate(120deg) scaleY(1.05); }
+            100% { transform: rotate(65deg) scaleY(0.95); }
+        }
+        @keyframes leg-star-left {
+            0% { transform: rotate(22deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @keyframes leg-star-right {
+            0% { transform: rotate(-22deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Move 6: 掰掰～下課囉 / 下車囉！👋 (揮手道別 + 禮貌鞠躬) */
+        .pose-move6 .body-group {
+            animation: bye-bow 0.7s ease-in-out infinite alternate;
+        }
+        .pose-move6 .head-group {
+            animation: bye-head 0.7s ease-in-out infinite alternate;
+        }
+        .pose-move6 .arm-left {
+            animation: bye-wave-left 0.3s ease-in-out infinite alternate;
+        }
+        .pose-move6 .arm-right {
+            animation: bye-wave-right 0.3s ease-in-out infinite alternate;
+        }
+        @keyframes bye-bow {
+            0% { transform: translateY(0px) rotate(-3deg); }
+            100% { transform: translateY(10px) rotate(3deg) scaleY(0.94); }
+        }
+        @keyframes bye-head {
+            0% { transform: rotate(-8deg) translateY(0px); }
+            100% { transform: rotate(8deg) translateY(8px); }
+        }
+        @keyframes bye-wave-left {
+            0% { transform: rotate(-115deg); }
+            100% { transform: rotate(-150deg); }
+        }
+        @keyframes bye-wave-right {
+            0% { transform: rotate(115deg); }
+            100% { transform: rotate(150deg); }
+        }
+
+        /* 漢堡吉祥物衝刺動畫 (致敬影片裡穿漢堡裝衝過去的搞笑橋段) */
+        .mascot-runner {
+            pointer-events: none;
+            transform: translateX(-140%);
+        }
+        .mascot-active {
+            animation: mascot-dash 2.7s cubic-bezier(0.25, 0.8, 0.4, 1) forwards;
+        }
+        @keyframes mascot-dash {
+            0% { transform: translateX(-120%) translateY(0) rotate(5deg); }
+            15% { transform: translateX(-60%) translateY(-18px) rotate(-8deg); }
+            30% { transform: translateX(-10%) translateY(0px) rotate(8deg) scale(1.08); }
+            45% { transform: translateX(15%) translateY(-22px) rotate(-10deg) scale(1.12); }
+            60% { transform: translateX(45%) translateY(0px) rotate(6deg) scale(1.08); }
+            80% { transform: translateX(85%) translateY(-16px) rotate(-6deg); }
+            100% { transform: translateX(145%) translateY(0px) rotate(10deg); }
+        }
+
+        /* 卡拉OK字幕彈跳特效 */
+        .lyric-pop {
+            animation: lyric-bounce 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes lyric-bounce {
+            0% { transform: scale(0.75) translateY(15px); opacity: 0.3; }
+            70% { transform: scale(1.06) translateY(-3px); opacity: 1; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        /* 皇冠降臨特效 */
+        .crown-hidden {
+            opacity: 0;
+            transform: translateY(-55px) scale(0.2);
+            transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .crown-visible {
+            opacity: 1;
+            transform: translateY(0px) scale(1);
+            animation: crown-glow 0.936s ease-in-out infinite alternate;
+        }
+        @keyframes crown-glow {
+            0% { filter: drop-shadow(0 0 6px #facc15); transform: translateY(0px) scale(1); }
+            100% { filter: drop-shadow(0 0 16px #eab308) drop-shadow(0 0 25px #fef08a); transform: translateY(-4px) scale(1.07); }
+        }
+
+        /* 浮動粒子動畫 */
+        @keyframes float-up {
+            0% { transform: translateY(0) scale(0.6) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-180px) scale(1.3) rotate(25deg); opacity: 0; }
+        }
+        .floating-emoji {
+            position: absolute;
+            pointer-events: none;
+            animation: float-up 1.8s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-2 sm:p-4 md:p-6">
+
+    <!-- 頂部標題與快速模式導覽 -->
+    <header class="max-w-6xl w-full mx-auto mb-3 flex flex-col sm:flex-row items-center justify-between gap-2 bg-slate-900/80 backdrop-blur-md border border-pink-500/30 rounded-2xl px-4 py-3 shadow-lg">
+        <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-pink-500 via-purple-500 to-yellow-400 flex items-center justify-center text-2xl shadow-md animate-bounce">
+                👑
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-black tracking-wide bg-gradient-to-r from-yellow-300 via-pink-400 to-cyan-300 bg-clip-text text-transparent">
+                    各位寶寶「上車舞」卡通慶祝派對
+                </h1>
+                <p class="text-xs text-slate-300">輸入名字自動生成專屬誇誇台詞、Q版舞團編舞與動感電子配樂！</p>
+            </div>
+        </div>
+
+        <!-- 音效與語音開關 -->
+        <div class="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
+            <button id="toggleBgmBtn" onclick="toggleBGM()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-pink-600/90 hover:bg-pink-500 text-white border border-pink-300/40 shadow transition">
+                <span id="bgmIcon">🔊</span> <span>電子配樂: 開啟</span>
+            </button>
+            <button id="toggleTtsBtn" onclick="toggleTTS()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-cyan-600/90 hover:bg-cyan-500 text-white border border-cyan-300/40 shadow transition">
+                <span id="ttsIcon">🗣️</span> <span>語音歡呼: 開啟</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- 主內容區：左側/上方控制面板 + 舞台區 -->
+    <main class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-grow">
+
+        <!-- 左側控制面板 (4 cols on desktop) -->
+        <section class="lg:col-span-4 bg-slate-900/85 backdrop-blur-md border border-purple-500/30 rounded-3xl p-4 sm:p-5 flex flex-col justify-between shadow-2xl">
+            <div class="space-y-4">
+                <!-- 1. 輸入主角名字 -->
+                <div>
+                    <label for="nameInput" class="block text-sm font-bold text-pink-300 mb-1.5 flex items-center justify-between">
+                        <span>✨ 步驟 1：輸入要慶祝／點名的主角</span>
+                        <span class="text-xs text-slate-400">支援任何名字或稱呼</span>
+                    </label>
+                    <div class="relative">
+                        <input
+                            id="nameInput"
+                            type="text"
+                            maxlength="12"
+                            value="全班"
+                            placeholder="例如：陳同學、王小明、壽星..."
+                            class="w-full px-4 py-3 rounded-2xl bg-slate-800/90 border-2 border-pink-500/50 focus:border-yellow-400 focus:outline-none text-lg font-black text-yellow-300 placeholder-slate-500 shadow-inner"
+                            oninput="handleNamePreview()"
+                        />
+                        <button onclick="clearAndFocusName()" title="清除重填" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-sm px-2 py-1">
+                            ✕
+                        </button>
+                    </div>
+
+                    <!-- 快速預設標籤 -->
+                    <div class="mt-2">
+                        <span class="text-xs text-slate-400 block mb-1">⚡ 快速套用熱門稱呼：</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="setPresetName('全班')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-pink-600/60 border border-slate-700 text-xs font-bold text-slate-200 transition">👶 全班寶寶</button>
+                            <button onclick="setPresetName('值日生')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-pink-600/60 border border-slate-700 text-xs font-bold text-slate-200 transition">🧹 值日生</button>
+                            <button onclick="setPresetName('小壽星')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-pink-600/60 border border-slate-700 text-xs font-bold text-slate-200 transition">🎂 小壽星</button>
+                            <button onclick="setPresetName('表現滿分王')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-pink-600/60 border border-slate-700 text-xs font-bold text-slate-200 transition">💯 表現滿分王</button>
+                            <button onclick="setPresetName('陳同學')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-pink-600/60 border border-slate-700 text-xs font-bold text-slate-200 transition">🌟 陳同學</button>
+                            <button onclick="setPresetName('林小美')" class="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-pink-600/60 border border-slate-700 text-xs font-bold text-slate-200 transition">💖 林小美</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. 選擇上車舞主題版本 (4種原片經典版本) -->
+                <div>
+                    <label class="block text-sm font-bold text-cyan-300 mb-1.5">
+                        🎵 步驟 2：選擇「上車舞」台詞情境
+                    </label>
+                    <div class="grid grid-cols-2 gap-2" id="themeButtonsContainer">
+                        <button onclick="selectTheme('classic')" data-theme="classic" class="theme-btn active-theme p-2.5 rounded-2xl border-2 border-yellow-400 bg-gradient-to-br from-pink-600/50 to-purple-700/50 text-left transition flex flex-col justify-between">
+                            <span class="text-base">🎉 經典慶祝版</span>
+                            <span class="text-[11px] text-slate-200 opacity-90">我們來接你們了～人見人愛！</span>
+                        </button>
+                        <button onclick="selectTheme('class')" data-theme="class" class="theme-btn p-2.5 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition flex flex-col justify-between">
+                            <span class="text-base">📚 上課坐好版</span>
+                            <span class="text-[11px] text-slate-300 opacity-90">上課坐好動作快！舉手回答帥</span>
+                        </button>
+                        <button onclick="selectTheme('homework')" data-theme="homework" class="theme-btn p-2.5 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition flex flex-col justify-between">
+                            <span class="text-base">📝 交作業版</span>
+                            <span class="text-[11px] text-slate-300 opacity-90">作業放好認真排！沒人遲交帥</span>
+                        </button>
+                        <button onclick="selectTheme('lunch')" data-theme="lunch" class="theme-btn p-2.5 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition flex flex-col justify-between">
+                            <span class="text-base">🍱 開心吃飯版</span>
+                            <span class="text-[11px] text-slate-300 opacity-90">飯前洗手來打菜！不挑食長得快</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. 台詞預覽清單 -->
+                <div class="bg-slate-950/70 border border-slate-800 rounded-2xl p-3">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-bold text-yellow-300">📜 專屬編舞歌詞預覽（點擊單句可單獨試跳）：</span>
+                        <span id="currentStepBadge" class="text-[11px] px-2 py-0.5 rounded-full bg-purple-900 text-purple-200">準備中</span>
+                    </div>
+                    <ul id="lyricsListPreview" class="space-y-1 text-xs text-slate-300 max-h-40 overflow-y-auto pr-1">
+                        <!-- 由 JS 動態生成 -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 底部啟動大按鈕 -->
+            <div class="mt-4 pt-3 border-t border-slate-800 flex flex-col gap-2">
+                <button
+                    id="startDanceBtn"
+                    onclick="startCelebrationDance()"
+                    class="w-full py-3.5 px-6 rounded-2xl font-black text-lg sm:text-xl text-slate-950 bg-gradient-to-r from-yellow-300 via-amber-400 to-pink-400 hover:from-yellow-200 hover:to-pink-300 shadow-[0_0_25px_rgba(250,204,21,0.6)] active:scale-95 transition flex items-center justify-center gap-2"
+                >
+                    <span>🕺</span>
+                    <span id="startBtnText">開始專屬慶祝上車舞！</span>
+                    <span>🎉</span>
+                </button>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button
+                        onclick="triggerMascotDash()"
+                        class="py-2 px-3 rounded-xl font-bold text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 transition flex items-center justify-center gap-1"
+                    >
+                        🍔 召喚漢堡寶衝刺
+                    </button>
+                    <button
+                        onclick="burstConfettiAndCheer()"
+                        class="py-2 px-3 rounded-xl font-bold text-xs bg-pink-500/20 hover:bg-pink-500/30 text-pink-300 border border-pink-400/30 transition flex items-center justify-center gap-1"
+                    >
+                        🎊 狂撒彩帶＋歡呼
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 右側卡通舞台區 (8 cols on desktop) -->
+        <section class="lg:col-span-8 stage-container rounded-3xl border-2 border-pink-500/40 relative overflow-hidden flex flex-col justify-between min-h-[480px] sm:min-h-[540px]">
+
+            <!-- 舞台頂部霓虹燈串 -->
+            <div class="relative z-20 flex justify-around items-center px-4 py-2 bg-slate-950/60 border-b border-pink-500/30">
+                <div class="w-3 h-3 rounded-full bg-yellow-300 marquee-bulb"></div>
+                <div class="w-3 h-3 rounded-full bg-pink-400 marquee-bulb"></div>
+                <div class="w-3 h-3 rounded-full bg-cyan-300 marquee-bulb"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-300 marquee-bulb"></div>
+                <div class="px-4 py-0.5 rounded-full bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 border border-yellow-300/60 shadow-md text-xs sm:text-sm font-black tracking-wider text-yellow-200 flex items-center gap-1.5">
+                    <span>🌟</span>
+                    <span id="stageBannerTitle">全班寶寶 專屬慶祝舞台</span>
+                    <span>🌟</span>
+                </div>
+                <div class="w-3 h-3 rounded-full bg-cyan-300 marquee-bulb"></div>
+                <div class="w-3 h-3 rounded-full bg-pink-400 marquee-bulb"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-300 marquee-bulb"></div>
+                <div class="w-3 h-3 rounded-full bg-pink-400 marquee-bulb"></div>
+            </div>
+
+            <!-- 舞台探照燈光束 -->
+            <div class="absolute inset-0 pointer-events-none overflow-hidden">
+                <div class="spotlight absolute -top-10 left-1/4 w-48 h-[520px] bg-gradient-to-b from-pink-400/35 via-purple-400/15 to-transparent clip-triangle"></div>
+                <div class="spotlight spotlight-2 absolute -top-10 right-1/4 w-48 h-[520px] bg-gradient-to-b from-cyan-400/35 via-blue-400/15 to-transparent"></div>
+                <div class="spotlight absolute -top-10 left-1/2 -translate-x-1/2 w-64 h-[520px] bg-gradient-to-b from-yellow-300/30 via-amber-300/10 to-transparent"></div>
+            </div>
+
+            <!-- 撒花 Canvas 層 -->
+            <canvas id="confettiCanvas" class="absolute inset-0 w-full h-full pointer-events-none z-30"></canvas>
+
+            <!-- 浮動表情符號容器 -->
+            <div id="floatingEmojiContainer" class="absolute inset-0 pointer-events-none z-20 overflow-hidden"></div>
+
+            <!-- 舞台中央：主角皇冠榮譽橫幅 -->
+            <div class="relative z-20 flex flex-col items-center mt-2 sm:mt-4 px-3">
+                <div id="vipHonorCard" class="transition-all duration-500 transform scale-95 opacity-90 bg-gradient-to-r from-amber-500/20 via-yellow-400/30 to-amber-500/20 backdrop-blur-md border-2 border-yellow-300/70 rounded-2xl px-5 py-1.5 shadow-[0_0_20px_rgba(250,204,21,0.35)] flex items-center gap-2">
+                    <span class="text-xl sm:text-2xl">👑</span>
+                    <div class="text-center">
+                        <div class="text-[10px] sm:text-xs text-yellow-200 font-bold tracking-widest uppercase">TODAY'S SUPER STAR</div>
+                        <div id="vipNameBadge" class="text-lg sm:text-2xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                            全班 寶寶
+                        </div>
+                    </div>
+                    <span class="text-xl sm:text-2xl">✨</span>
+                </div>
+            </div>
+
+            <!-- 卡通舞團陣列 (5位Q版角色排成V字舞台隊形) -->
+            <div class="relative z-10 flex-grow flex items-end justify-center px-2 sm:px-6 pb-4 pt-6">
+                <!-- 舞台地板 -->
+                <div class="stage-floor absolute bottom-0 inset-x-0 h-28 z-0"></div>
+
+                <!-- 5位卡通舞者容器 -->
+                <div id="dancersStage" class="relative z-10 w-full max-w-3xl grid grid-cols-5 items-end gap-1 sm:gap-2">
+                    <!-- 由 JS 生成 5 位造型不同的可愛卡通角色 SVG -->
+                </div>
+
+                <!-- 驚喜彩蛋：穿漢堡裝衝過鏡頭的搞笑吉祥物 (還原影片名場面！) -->
+                <div id="burgerMascot" class="mascot-runner absolute bottom-2 left-0 z-30 w-28 sm:w-36">
+                    <!-- 漢堡吉祥物 SVG -->
+                    <svg viewBox="0 0 200 220" class="w-full h-auto drop-shadow-[0_10px_15px_rgba(0,0,0,0.6)]">
+                        <!-- 對話氣泡 -->
+                        <g transform="translate(20, 0)">
+                            <rect x="10" y="2" width="140" height="36" rx="18" fill="#fef08a" stroke="#ca8a04" stroke-width="3"/>
+                            <polygon points="70,38 82,38 75,48" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+                            <text x="80" y="26" text-anchor="middle" font-size="18" font-weight="900" fill="#b91c1c">來囉來囉！🍔</text>
+                        </g>
+                        <!-- 雙腳奔跑 -->
+                        <rect x="72" y="175" width="16" height="32" rx="8" fill="#facc15" transform="rotate(-25 80 175)"/>
+                        <rect x="112" y="175" width="16" height="32" rx="8" fill="#facc15" transform="rotate(30 120 175)"/>
+                        <!-- 漢堡裝身體 -->
+                        <!-- 下層麵包 -->
+                        <path d="M40,155 Q100,185 160,155 L155,178 Q100,195 45,178 Z" fill="#f59e0b" stroke="#78350f" stroke-width="4"/>
+                        <!-- 起司與漢堡肉 -->
+                        <rect x="35" y="132" width="130" height="24" rx="12" fill="#78350f" stroke="#451a03" stroke-width="4"/>
+                        <polygon points="45,134 65,150 85,134 115,152 135,134 155,148 155,134" fill="#facc15"/>
+                        <!-- 生菜與番茄 -->
+                        <path d="M32,125 Q50,140 68,125 Q86,140 104,125 Q122,140 140,125 Q155,140 168,125" fill="none" stroke="#22c55e" stroke-width="12" stroke-linecap="round"/>
+                        <!-- 上層漢堡麵包 -->
+                        <path d="M38,120 C38,65 162,65 162,120 Z" fill="#f59e0b" stroke="#78350f" stroke-width="4"/>
+                        <!-- 芝麻粒 -->
+                        <ellipse cx="75" cy="85" rx="4" ry="2.5" fill="#fef3c7" transform="rotate(-15 75 85)"/>
+                        <ellipse cx="105" cy="78" rx="4" ry="2.5" fill="#fef3c7" transform="rotate(10 105 78)"/>
+                        <ellipse cx="130" cy="88" rx="4" ry="2.5" fill="#fef3c7" transform="rotate(20 130 88)"/>
+                        <!-- 露出來的搞笑可愛臉蛋 -->
+                        <circle cx="100" cy="118" r="28" fill="#fde68a" stroke="#78350f" stroke-width="3"/>
+                        <!-- 搞笑墨鏡/大眼睛 -->
+                        <circle cx="89" cy="113" r="5" fill="#1e293b"/>
+                        <circle cx="111" cy="113" r="5" fill="#1e293b"/>
+                        <circle cx="87" cy="111" r="2" fill="#fff"/>
+                        <circle cx="109" cy="111" r="2" fill="#fff"/>
+                        <!-- 腮紅與大笑嘴 -->
+                        <ellipse cx="80" cy="121" rx="5" ry="3" fill="#f43f5e" opacity="0.7"/>
+                        <ellipse cx="120" cy="121" rx="5" ry="3" fill="#f43f5e" opacity="0.7"/>
+                        <path d="M90,123 Q100,136 110,123 Z" fill="#ef4444" stroke="#78350f" stroke-width="2"/>
+                        <!-- 揮動的小短手 -->
+                        <rect x="15" y="115" width="28" height="14" rx="7" fill="#facc15" stroke="#78350f" stroke-width="3" transform="rotate(-35 28 122)"/>
+                        <rect x="157" y="115" width="28" height="14" rx="7" fill="#facc15" stroke="#78350f" stroke-width="3" transform="rotate(35 172 122)"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 舞台底部：卡拉 OK 動態大字幕與進度條 -->
+            <div class="relative z-20 bg-slate-950/85 backdrop-blur-md border-t border-pink-500/40 px-4 py-3 sm:py-4">
+                <!-- 進度指示燈 (6個階段) -->
+                <div class="flex justify-center gap-1.5 mb-2" id="stepDotsContainer">
+                    <div class="h-1.5 w-8 rounded-full bg-slate-700 transition-all duration-300" data-dot="0"></div>
+                    <div class="h-1.5 w-8 rounded-full bg-slate-700 transition-all duration-300" data-dot="1"></div>
+                    <div class="h-1.5 w-8 rounded-full bg-slate-700 transition-all duration-300" data-dot="2"></div>
+                    <div class="h-1.5 w-8 rounded-full bg-slate-700 transition-all duration-300" data-dot="3"></div>
+                    <div class="h-1.5 w-8 rounded-full bg-slate-700 transition-all duration-300" data-dot="4"></div>
+                    <div class="h-1.5 w-8 rounded-full bg-slate-700 transition-all duration-300" data-dot="5"></div>
+                </div>
+
+                <!-- 大字幕顯示 -->
+                <div class="min-h-[56px] flex flex-col items-center justify-center text-center">
+                    <div id="karaokeSubtitle" class="text-xl sm:text-2xl md:text-3xl font-black tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-pink-300 to-cyan-200 drop-shadow-[0_2px_10px_rgba(236,72,153,0.6)]">
+                        👇 輸入名字並點擊「開始專屬慶祝上車舞」！
+                    </div>
+                    <div id="danceMoveHint" class="text-xs text-pink-300/90 mt-1 font-medium">
+                        🎵 準備好跟 5 位卡通寶寶一起跳上車舞了嗎？
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 頁尾簡易說明 -->
+    <footer class="max-w-6xl w-full mx-auto mt-3 text-center text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between px-2 gap-1">
+        <span>💡 小提示：點擊左側「歌詞預覽」中的任一行，可以直接跳到該段舞蹈動作與配樂喔！</span>
+        <span>靈感來源：熱門教室互動「上車舞－各位寶寶，上課囉」卡通改編版</span>
+    </footer>
+
+    <script>
+        /********************************************************************
+         * 1. 四大主題歌詞資料庫 (完全對應原片4個段落 + 支援自訂名字替換)
+         ********************************************************************/
+        const THEMES = {
+            classic: {
+                name: '🎉 經典慶祝版',
+                lines: [
+                    {
+                        template: '{name}寶寶們，我們來接你們了～',
+                        move: 'pose-move1',
+                        moveDesc: '🚗 動作一：轉動方向盤＋熱情招手上車！',
+                        emojis: ['🚌', '👋', '💖', '✨'],
+                        crown: false,
+                        mascot: false,
+                        duration: 3400
+                    },
+                    {
+                        template: '來囉來囉！可愛可愛！',
+                        move: 'pose-move2',
+                        moveDesc: '🍔 動作二：雙手高舉歡呼＋漢堡吉祥物驚喜衝刺！',
+                        emojis: ['🍔', '🏃💨', '🎉', '😆'],
+                        crown: false,
+                        mascot: true,
+                        duration: 3200
+                    },
+                    {
+                        template: '小{name}們最可愛！好可愛呀好可愛！',
+                        move: 'pose-move3',
+                        moveDesc: '😻 動作三：雙手戳臉頰＋左右賣萌扭腰！',
+                        emojis: ['🥰', '🌸', '💕', '🐱'],
+                        crown: false,
+                        mascot: false,
+                        duration: 3600
+                    },
+                    {
+                        template: '皇冠就給{name}戴！👑',
+                        move: 'pose-move4',
+                        moveDesc: '👑 動作四：雙手高舉榮譽加冕！黃金皇冠降臨！',
+                        emojis: ['👑', '🌟', '🏆', '✨'],
+                        crown: true,
+                        mascot: false,
+                        duration: 3300
+                    },
+                    {
+                        template: '哇塞哇塞！{name}人見人愛，閃閃發光惹人愛✨',
+                        move: 'pose-move5',
+                        moveDesc: '💪 動作五：活力跳躍秀肌肉＋滿天星光撒花！',
+                        emojis: ['✨', '💎', '🔥', '💖'],
+                        crown: true,
+                        mascot: false,
+                        duration: 4200
+                    },
+                    {
+                        template: '掰掰～下車囉！下課囉！👋',
+                        move: 'pose-move6',
+                        moveDesc: '👋 動作六：整齊揮手說掰掰＋禮貌敬禮！',
+                        emojis: ['👋', '🎊', '🌈', '🥳'],
+                        crown: true,
+                        mascot: false,
+                        duration: 3400
+                    }
+                ]
+            },
+            class: {
+                name: '📚 上課坐好版',
+                lines: [
+                    {
+                        template: '{name}寶寶，我們來上課了唷～',
+                        move: 'pose-move1',
+                        moveDesc: '🔔 動作一：上課鐘響！熱情招手進教室！',
+                        emojis: ['📚', '🔔', '👋', '✨'],
+                        crown: false,
+                        mascot: false,
+                        duration: 3400
+                    },
+                    {
+                        template: '來囉來囉！快，趕快，上課坐好動作快！',
+                        move: 'pose-move2',
+                        moveDesc: '⚡ 動作二：活力小碎步加速＋漢堡寶趕上課衝刺！',
+                        emojis: ['🏃💨', '🪑', '⚡', '🍔'],
+                        crown: false,
+                        mascot: true,
+                        duration: 3600
+                    },
+                    {
+                        template: '動作快啊動作快，{name}寶寶動作快！',
+                        move: 'pose-move3',
+                        moveDesc: '👏 動作三：拍手律動＋精神飽滿左右搖擺！',
+                        emojis: ['👏', '💯', '🎵', '🌟'],
+                        crown: false,
+                        mascot: false,
+                        duration: 3600
+                    },
+                    {
+                        template: '皇冠就給{name}戴！👑',
+                        move: 'pose-move4',
+                        moveDesc: '👑 動作四：雙手高舉榮譽加冕！表現第一名！',
+                        emojis: ['👑', '🏆', '🌟', '✨'],
+                        crown: true,
+                        mascot: false,
+                        duration: 3300
+                    },
+                    {
+                        template: '哇塞哇塞！{name}舉手回答超級帥，閃閃發光惹人愛✨',
+                        move: 'pose-move5',
+                        moveDesc: '🙋‍♂️ 動作五：霸氣舉手＋閃耀跳躍大誇獎！',
+                        emojis: ['🙋‍♀️', '✨', '🔥', '👍'],
+                        crown: true,
+                        mascot: false,
+                        duration: 4300
+                    },
+                    {
+                        template: '掰掰～下課囉！👋',
+                        move: 'pose-move6',
+                        moveDesc: '👋 動作六：開心揮手下課囉！',
+                        emojis: ['👋', '🎉', '🎈', '😄'],
+                        crown: true,
+                        mascot: false,
+                        duration: 3400
+                    }
+                ]
+            },
+            homework: {
+                name: '📝 交作業版',
+                lines: [
+                    {
+                        template: '{name}寶寶，我們交作業了唷～',
+                        move: 'pose-move1',
+                        moveDesc: '📝 動作一：捧著作業本往前招手！',
+                        emojis: ['📝', '📖', '👋', '✨'],
+                        crown: false,
+                        mascot: false,
+                        duration: 3400
+                    },
+                    {
+                        template: '來囉來囉！快，趕快，作業放好認真排！',
+                        move: 'pose-move2',
+                        moveDesc: '🏃 動作二：雙手歡呼快步排隊＋吉祥物衝刺！',
+                        emojis: ['📚', '🏃💨', '🍔', '⚡'],
+                        crown: false,
+                        mascot: true,
+                        duration: 3600
+                    },
+                    {
+                        template: '好會排啊好會排，{name}作業整齊好會排！',
+                        move: 'pose-move3',
+                        moveDesc: '😻 動作三：俏皮托腮誇獎＋左右搖擺！',
+                        emojis: ['👍', '✨', '🥰', '💯'],
+                        crown: false,
+                        mascot: false,
+                        duration: 3600
+                    },
+                    {
+                        template: '皇冠就給{name}戴！👑',
+                        move: 'pose-move4',
+                        moveDesc: '👑 動作四：雙手加冕！最佳模範寶寶皇冠！',
+                        emojis: ['👑', '🏆', '🌟', '🎉'],
+                        crown: true,
+                        mascot: false,
+                        duration: 3300
+                    },
+                    {
+                        template: '哇塞哇塞！{name}沒人遲交超級帥，認真作業人人愛✨',
+                        move: 'pose-move5',
+                        moveDesc: '💪 動作五：超級帥氣姿勢＋滿天金星喝采！',
+                        emojis: ['🌟', '💪', '💯', '💖'],
+                        crown: true,
+                        mascot: false,
+                        duration: 4300
+                    },
+                    {
+                        template: '掰掰～吃飯囉！👋',
+                        move: 'pose-move6',
+                        moveDesc: '👋 動作六：開心揮揮手準備去吃飯！',
+                        emojis: ['👋', '🍱', '🎉', '😋'],
+                        crown: true,
+                        mascot: false,
+                        duration: 3400
+                    }
+                ]
+            },
+            lunch: {
+                name: '🍱 開心吃飯版',
+                lines: [
+                    {
+                        template: '{name}寶寶，我們來吃飯了唷～',
+                        move: 'pose-move1',
+                        moveDesc: '🍱 動作一：開動啦！熱情招手來排隊！',
+                        emojis: ['🍱', '🥄', '👋', '✨'],
+                        crown: false,
+                        mascot: false,
+                        duration: 3400
+                    },
+                    {
+                        template: '來囉來囉！快，趕快，飯前洗手來打菜！',
+                        move: 'pose-move2',
+                        moveDesc: '🧼 動作二：搓搓手歡呼＋漢堡吉祥物奔跑開飯！',
+                        emojis: ['🧼', '🍔', '🏃💨', '🍛'],
+                        crown: false,
+                        mascot: true,
+                        duration: 3600
+                    },
+                    {
+                        template: '來打菜啊來打菜，{name}排隊整齊來打菜！',
+                        move: 'pose-move3',
+                        moveDesc: '😋 動作三：摸摸臉頰好美味＋乖巧搖擺！',
+                        emojis: ['😋', '🥦', '🍗', '💕'],
+                        crown: false,
+                        mascot: false,
+                        duration: 3600
+                    },
+                    {
+                        template: '皇冠就給{name}戴！👑',
+                        move: 'pose-move4',
+                        moveDesc: '👑 動作四：健康寶寶加冕黃金皇冠！',
+                        emojis: ['👑', '🌟', '🏆', '🍎'],
+                        crown: true,
+                        mascot: false,
+                        duration: 3300
+                    },
+                    {
+                        template: '哇塞哇塞！{name}安靜吃飯超級帥，不會挑食長得快✨',
+                        move: 'pose-move5',
+                        moveDesc: '💪 動作五：強壯秀肌肉＋高高跳起長得快！',
+                        emojis: ['💪', '✨', '🥗', '🌟'],
+                        crown: true,
+                        mascot: false,
+                        duration: 4300
+                    },
+                    {
+                        template: '掰掰～放學囉！👋',
+                        move: 'pose-move6',
+                        moveDesc: '👋 動作六：雙手揮揮放學回家囉！',
+                        emojis: ['👋', '🎒', '🌈', '🎊'],
+                        crown: true,
+                        mascot: false,
+                        duration: 3400
+                    }
+                ]
+            }
+        };
+
+        /********************************************************************
+         * 2. 5位Q版卡通舞者角色設定 (髮型、服裝顏色、配件)
+         ********************************************************************/
+        const DANCERS_CONFIG = [
+            {
+                id: 'dancer-0',
+                role: '活力雙馬尾',
+                hairColor: '#f472b6', // 粉紅髮
+                shirtColor: '#38bdf8',
+                overallColor: '#facc15',
+                hairType: 'twintails',
+                scale: 'scale-90 sm:scale-95'
+            },
+            {
+                id: 'dancer-1',
+                role: '陽光棒球帽',
+                hairColor: '#60a5fa', // 藍髮
+                shirtColor: '#facc15',
+                overallColor: '#ef4444',
+                hairType: 'cap',
+                scale: 'scale-95 sm:scale-100'
+            },
+            {
+                id: 'dancer-2',
+                role: '👑 C位大明星',
+                hairColor: '#fb923c', // 亮橘棕
+                shirtColor: '#f43f5e',
+                overallColor: '#a855f7',
+                hairType: 'idol',
+                isCenter: true,
+                scale: 'scale-105 sm:scale-110 z-20'
+            },
+            {
+                id: 'dancer-3',
+                role: '可愛貓耳帽',
+                hairColor: '#c084fc', // 紫髮
+                shirtColor: '#4ade80',
+                overallColor: '#ec4899',
+                hairType: 'catears',
+                scale: 'scale-95 sm:scale-100'
+            },
+            {
+                id: 'dancer-4',
+                role: '俏皮丸子頭',
+                hairColor: '#facc15', // 金髮
+                shirtColor: '#a855f7',
+                overallColor: '#06b6d4',
+                hairType: 'buns',
+                scale: 'scale-90 sm:scale-95'
+            }
+        ];
+
+        // 狀態管理
+        let currentThemeKey = 'classic';
+        let isDancing = false;
+        let currentLineIndex = -1;
+        let danceTimeoutIds = [];
+        let bgmEnabled = true;
+        let ttsEnabled = true;
+
+        // Web Audio API 變數
+        let audioCtx = null;
+        let bgmIntervalId = null;
+        let beatStep = 0;
+
+        /********************************************************************
+         * 3. 繪製 5 位關節可動的 Q 版卡通人物 SVG
+         ********************************************************************/
+        function buildDancerSVG(dancer, index) {
+            // 依據 hairType 繪製不同可愛髮型/帽子
+            let hairBackSVG = '';
+            let hairFrontSVG = '';
+
+            if (dancer.hairType === 'twintails') {
+                hairBackSVG = `
+                    <circle cx="42" cy="85" r="20" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                    <circle cx="158" cy="85" r="20" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                `;
+                hairFrontSVG = `
+                    <path d="M52,85 C52,42 148,42 148,85 C135,68 115,65 100,68 C85,65 65,68 52,85 Z" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                    <circle cx="55" cy="72" r="7" fill="#fef08a" stroke="#1e1b4b" stroke-width="2.5"/>
+                    <circle cx="145" cy="72" r="7" fill="#fef08a" stroke="#1e1b4b" stroke-width="2.5"/>
+                `;
+            } else if (dancer.hairType === 'cap') {
+                hairFrontSVG = `
+                    <path d="M50,82 C50,40 150,40 150,82 Z" fill="#ef4444" stroke="#1e1b4b" stroke-width="3.5"/>
+                    <path d="M45,78 Q100,65 168,82 Q135,90 45,78 Z" fill="#facc15" stroke="#1e1b4b" stroke-width="3.5"/>
+                    <circle cx="100" cy="48" r="6" fill="#facc15" stroke="#1e1b4b" stroke-width="2.5"/>
+                `;
+            } else if (dancer.hairType === 'catears') {
+                hairFrontSVG = `
+                    <polygon points="55,75 45,38 82,58" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5" stroke-linejoin="round"/>
+                    <polygon points="60,70 53,46 76,60" fill="#fbcfe8"/>
+                    <polygon points="145,75 155,38 118,58" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5" stroke-linejoin="round"/>
+                    <polygon points="140,70 147,46 124,60" fill="#fbcfe8"/>
+                    <path d="M50,86 C50,45 150,45 150,86 Q100,66 50,86 Z" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                `;
+            } else if (dancer.hairType === 'buns') {
+                hairBackSVG = `
+                    <circle cx="58" cy="48" r="17" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                    <circle cx="142" cy="48" r="17" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                `;
+                hairFrontSVG = `
+                    <path d="M52,86 C52,44 148,44 148,86 Q120,66 100,72 Q80,66 52,86 Z" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                `;
+            } else {
+                // C位偶像髮型 + 星星髮飾
+                hairFrontSVG = `
+                    <path d="M48,88 C45,38 155,38 152,88 C135,64 115,62 100,72 C85,62 65,64 48,88 Z" fill="${dancer.hairColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                    <polygon points="65,58 69,66 78,67 71,73 73,81 65,77 57,81 59,73 52,67 61,66" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+                `;
+            }
+
+            // 皇冠 SVG (C位超大皇冠，其他隊員也有精緻小皇冠)
+            const crownScale = dancer.isCenter ? 'scale(1.15)' : 'scale(0.82)';
+            const crownSVG = `
+                <g class="crown-group crown-hidden" id="crown-${index}">
+                    <g transform="translate(100, 32) ${crownScale} translate(-100, -32)">
+                        <polygon points="62,48 70,14 88,32 100,8 112,32 130,14 138,48" fill="#facc15" stroke="#854d0e" stroke-width="4" stroke-linejoin="round"/>
+                        <rect x="60" y="45" width="80" height="10" rx="5" fill="#eab308" stroke="#854d0e" stroke-width="3.5"/>
+                        <circle cx="100" cy="30" r="5" fill="#f43f5e"/>
+                        <circle cx="78" cy="36" r="4" fill="#38bdf8"/>
+                        <circle cx="122" cy="36" r="4" fill="#38bdf8"/>
+                        <circle cx="100" cy="6" r="4" fill="#fef08a"/>
+                    </g>
+                </g>
+            `;
+
+            return `
+                <div id="${dancer.id}" class="dancer-wrapper pose-idle flex flex-col items-center ${dancer.scale}">
+                    <svg viewBox="0 0 200 245" class="dancer-svg w-full h-auto drop-shadow-[0_8px_12px_rgba(0,0,0,0.5)]">
+                        <!-- 腳底舞台陰影 -->
+                        <ellipse cx="100" cy="232" rx="45" ry="9" fill="rgba(0,0,0,0.45)"/>
+
+                        <!-- 身體與四肢群組 -->
+                        <g class="body-group">
+                            <!-- 左腿 -->
+                            <g class="leg-left">
+                                <rect x="74" y="182" width="20" height="40" rx="10" fill="#fde68a" stroke="#1e1b4b" stroke-width="3.5"/>
+                                <rect x="72" y="202" width="24" height="12" rx="4" fill="#ffffff" stroke="#1e1b4b" stroke-width="3"/>
+                                <ellipse cx="83" cy="222" rx="15" ry="9" fill="${dancer.shirtColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                            </g>
+                            <!-- 右腿 -->
+                            <g class="leg-right">
+                                <rect x="106" y="182" width="20" height="40" rx="10" fill="#fde68a" stroke="#1e1b4b" stroke-width="3.5"/>
+                                <rect x="104" y="202" width="24" height="12" rx="4" fill="#ffffff" stroke="#1e1b4b" stroke-width="3"/>
+                                <ellipse cx="117" cy="222" rx="15" ry="9" fill="${dancer.shirtColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                            </g>
+
+                            <!-- 可愛吊帶褲與上衣 (還原影片中幼稚園/小學生制服感) -->
+                            <path d="M64,126 L136,126 L144,186 C144,195 56,195 56,186 Z" fill="${dancer.shirtColor}" stroke="#1e1b4b" stroke-width="3.5" stroke-linejoin="round"/>
+                            <!-- 吊帶褲下半部 -->
+                            <path d="M60,152 L140,152 L143,188 C143,196 57,196 57,188 Z" fill="${dancer.overallColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                            <!-- 吊帶 -->
+                            <rect x="72" y="125" width="11" height="32" rx="4" fill="${dancer.overallColor}" stroke="#1e1b4b" stroke-width="3"/>
+                            <rect x="117" y="125" width="11" height="32" rx="4" fill="${dancer.overallColor}" stroke="#1e1b4b" stroke-width="3"/>
+                            <circle cx="77.5" cy="150" r="4" fill="#fef08a" stroke="#1e1b4b" stroke-width="2"/>
+                            <circle cx="122.5" cy="150" r="4" fill="#fef08a" stroke="#1e1b4b" stroke-width="2"/>
+
+                            <!-- 胸前名牌小愛心 -->
+                            <path d="M100,174 C100,174 88,165 88,159 C88,155 93,153 97,156 C99,157 100,159 100,159 C100,159 101,157 103,156 C107,153 112,155 112,159 C112,165 100,174 100,174 Z" fill="#fef08a" stroke="#1e1b4b" stroke-width="2.5"/>
+
+                            <!-- 左手臂 -->
+                            <g class="arm-left">
+                                <rect x="48" y="126" width="22" height="52" rx="11" fill="${dancer.shirtColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                                <circle cx="59" cy="178" r="11" fill="#fde68a" stroke="#1e1b4b" stroke-width="3.5"/>
+                            </g>
+
+                            <!-- 右手臂 -->
+                            <g class="arm-right">
+                                <rect x="130" y="126" width="22" height="52" rx="11" fill="${dancer.shirtColor}" stroke="#1e1b4b" stroke-width="3.5"/>
+                                <circle cx="141" cy="178" r="11" fill="#fde68a" stroke="#1e1b4b" stroke-width="3.5"/>
+                            </g>
+
+                            <!-- 頭部群組 -->
+                            <g class="head-group">
+                                ${hairBackSVG}
+                                <!-- 耳朵 -->
+                                <circle cx="50" cy="95" r="10" fill="#fde68a" stroke="#1e1b4b" stroke-width="3.5"/>
+                                <circle cx="150" cy="95" r="10" fill="#fde68a" stroke="#1e1b4b" stroke-width="3.5"/>
+                                <!-- 圓潤Q版臉蛋 -->
+                                <rect x="52" y="52" width="96" height="76" rx="38" fill="#fde68a" stroke="#1e1b4b" stroke-width="3.5"/>
+
+                                <!-- 臉部表情：閃亮大眼睛 -->
+                                <g class="eyes-normal">
+                                    <ellipse cx="78" cy="92" rx="8.5" ry="10" fill="#1e1b4b"/>
+                                    <ellipse cx="122" cy="92" rx="8.5" ry="10" fill="#1e1b4b"/>
+                                    <circle cx="75" cy="88" r="3.5" fill="#ffffff"/>
+                                    <circle cx="119" cy="88" r="3.5" fill="#ffffff"/>
+                                    <circle cx="81" cy="96" r="1.8" fill="#ffffff"/>
+                                    <circle cx="125" cy="96" r="1.8" fill="#ffffff"/>
+                                </g>
+
+                                <!-- 粉紅腮紅 -->
+                                <ellipse cx="66" cy="104" rx="8" ry="4.5" fill="#fb7185" opacity="0.75"/>
+                                <ellipse cx="134" cy="104" rx="8" ry="4.5" fill="#fb7185" opacity="0.75"/>
+
+                                <!-- 開心張嘴笑 -->
+                                <path class="mouth-shape" d="M88,104 Q100,120 112,104 Z" fill="#f43f5e" stroke="#1e1b4b" stroke-width="3" stroke-linejoin="round"/>
+                                <path d="M93,110 Q100,115 107,110" fill="none" stroke="#fda4af" stroke-width="3" stroke-linecap="round"/>
+
+                                <!-- 前瀏海與頭飾 -->
+                                ${hairFrontSVG}
+
+                                <!-- 頭頂榮譽皇冠 -->
+                                ${crownSVG}
+                            </g>
+                        </g>
+                    </svg>
+
+                    <!-- 舞者腳下名牌 -->
+                    <div class=" -mt-2 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-black border shadow-sm whitespace-nowrap ${
+                        dancer.isCenter
+                            ? 'bg-gradient-to-r from-yellow-300 to-amber-400 text-slate-950 border-white scale-105'
+                            : 'bg-slate-900/90 text-pink-200 border-pink-500/40'
+                    }" id="dancer-tag-${index}">
+                        ${dancer.isCenter ? '👑 全班寶寶' : dancer.role}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStageDancers() {
+            const stageEl = document.getElementById('dancersStage');
+            stageEl.innerHTML = DANCERS_CONFIG.map((d, idx) => buildDancerSVG(d, idx)).join('');
+        }
+
+        /********************************************************************
+         * 4. 處理名字輸入、主題切換與歌詞預覽更新
+         ********************************************************************/
+        function getCleanName() {
+            const raw = document.getElementById('nameInput').value.trim();
+            return raw || '全班';
+        }
+
+        function formatLyric(template, name) {
+            // 若使用者已經輸入「全班寶寶」，避免重複變成「全班寶寶寶寶」
+            let cleanName = name;
+            if (template.includes('{name}寶寶') && cleanName.endsWith('寶寶')) {
+                cleanName = cleanName.slice(0, -2) || cleanName;
+            }
+            return template.replace(/\{name\}/g, cleanName);
+        }
+
+        function handleNamePreview() {
+            const name = getCleanName();
+            const displayTitle = name.endsWith('寶寶') ? name : `${name} 寶寶`;
+
+            document.getElementById('stageBannerTitle').textContent = `${displayTitle} 專屬慶祝舞台`;
+            document.getElementById('vipNameBadge').textContent = displayTitle;
+
+            const centerTag = document.getElementById('dancer-tag-2');
+            if (centerTag) {
+                centerTag.textContent = `👑 ${name}`;
+            }
+            renderLyricsPreviewList();
+        }
+
+        function setPresetName(preset) {
+            document.getElementById('nameInput').value = preset;
+            handleNamePreview();
+            // 播放輕快提示音
+            playPopSound(660);
+        }
+
+        function clearAndFocusName() {
+            const input = document.getElementById('nameInput');
+            input.value = '';
+            input.focus();
+            handleNamePreview();
+        }
+
+        function selectTheme(themeKey) {
+            currentThemeKey = themeKey;
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                if (btn.dataset.theme === themeKey) {
+                    btn.className = 'theme-btn active-theme p-2.5 rounded-2xl border-2 border-yellow-400 bg-gradient-to-br from-pink-600/50 to-purple-700/50 text-left transition flex flex-col justify-between';
+                } else {
+                    btn.className = 'theme-btn p-2.5 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:bg-slate-800 text-left transition flex flex-col justify-between';
+                }
+            });
+            renderLyricsPreviewList();
+            playPopSound(520);
+        }
+
+        function renderLyricsPreviewList() {
+            const name = getCleanName();
+            const theme = THEMES[currentThemeKey];
+            const listEl = document.getElementById('lyricsListPreview');
+
+            listEl.innerHTML = theme.lines.map((item, idx) => {
+                const text = formatLyric(item.template, name);
+                const isActive = idx === currentLineIndex;
+                return `
+                    <li
+                        onclick="previewSingleLine(${idx})"
+                        class="cursor-pointer px-2.5 py-1.5 rounded-xl transition flex items-center gap-2 ${
+                            isActive
+                                ? 'bg-gradient-to-r from-pink-600/80 to-purple-600/80 text-yellow-200 font-bold border border-yellow-300/60 shadow'
+                                : 'hover:bg-slate-800/80 text-slate-300'
+                        }"
+                    >
+                        <span class="w-5 h-5 rounded-full bg-slate-900 text-[11px] flex items-center justify-center font-bold text-pink-400 shrink-0">${idx + 1}</span>
+                        <span class="truncate">${text}</span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        /********************************************************************
+         * 5. 舞蹈動作控制、皇冠加冕與漢堡吉祥物衝刺
+         ********************************************************************/
+        function setDancersPose(poseClass, showCrown = false) {
+            DANCERS_CONFIG.forEach((d, idx) => {
+                const wrapper = document.getElementById(d.id);
+                if (wrapper) {
+                    wrapper.className = `dancer-wrapper ${poseClass} flex flex-col items-center ${d.scale}`;
+                }
+                const crownEl = document.getElementById(`crown-${idx}`);
+                if (crownEl) {
+                    if (showCrown) {
+                        crownEl.classList.remove('crown-hidden');
+                        crownEl.classList.add('crown-visible');
+                    } else {
+                        crownEl.classList.remove('crown-visible');
+                        crownEl.classList.add('crown-hidden');
+                    }
+                }
+            });
+
+            // 同步高亮舞台中央榮譽榜
+            const vipCard = document.getElementById('vipHonorCard');
+            if (showCrown) {
+                vipCard.classList.add('scale-110', 'border-yellow-200', 'shadow-[0_0_35px_rgba(250,204,21,0.9)]');
+            } else {
+                vipCard.classList.remove('scale-110', 'border-yellow-200', 'shadow-[0_0_35px_rgba(250,204,21,0.9)]');
+            }
+        }
+
+        function triggerMascotDash() {
+            const mascot = document.getElementById('burgerMascot');
+            mascot.classList.remove('mascot-active');
+            void mascot.offsetWidth; // trigger reflow
+            mascot.classList.add('mascot-active');
+            playWhistleSound();
+            spawnFloatingEmojis(['🍔', '🏃💨', '😆', '🍟'], 8);
+        }
+
+        function updateStepDots(activeIndex) {
+            document.querySelectorAll('#stepDotsContainer [data-dot]').forEach((dot, idx) => {
+                if (idx === activeIndex) {
+                    dot.className = 'h-2 w-12 rounded-full bg-gradient-to-r from-yellow-300 to-pink-400 shadow-[0_0_10px_#facc15] transition-all duration-300';
+                } else if (idx < activeIndex) {
+                    dot.className = 'h-1.5 w-8 rounded-full bg-pink-500/70 transition-all duration-300';
+                } else {
+                    dot.className = 'h-1.5 w-8 rounded-full bg-slate-700 transition-all duration-300';
+                }
+            });
+        }
+
+        /********************************************************************
+         * 6. 開始整套慶祝上車舞流程 / 單句預覽
+         ********************************************************************/
+        function clearDanceTimeouts() {
+            danceTimeoutIds.forEach(id => clearTimeout(id));
+            danceTimeoutIds = [];
+        }
+
+        function startCelebrationDance() {
+            // 若已在跳舞，則重新開始
+            clearDanceTimeouts();
+            stopSpeech();
+
+            isDancing = true;
+            const name = getCleanName();
+            const theme = THEMES[currentThemeKey];
+
+            handleNamePreview();
+
+            // 更新按鈕文字
+            const btnText = document.getElementById('startBtnText');
+            btnText.textContent = '🔄 重新播放慶祝上車舞！';
+
+            // 啟動動感電子配樂
+            if (bgmEnabled) {
+                startBGM();
+            }
+
+            let accumulatedTime = 0;
+
+            theme.lines.forEach((lineObj, index) => {
+                const timeoutId = setTimeout(() => {
+                    executeDanceStep(index);
+                }, accumulatedTime);
+                danceTimeoutIds.push(timeoutId);
+                accumulatedTime += lineObj.duration;
+            });
+
+            // 結束收尾
+            const finishId = setTimeout(() => {
+                isDancing = false;
+                document.getElementById('currentStepBadge').textContent = '🎉 慶祝完成';
+                document.getElementById('danceMoveHint').textContent = '👑 點擊「重新播放」或更換名字再跳一次吧！';
+                setDancersPose('pose-idle', true);
+                stopBGM();
+                burstConfetti(90);
+            }, accumulatedTime);
+            danceTimeoutIds.push(finishId);
+        }
+
+        function previewSingleLine(index) {
+            clearDanceTimeouts();
+            stopSpeech();
+            if (bgmEnabled) {
+                startBGM();
+            }
+            executeDanceStep(index);
+
+            const lineObj = THEMES[currentThemeKey].lines[index];
+            const endId = setTimeout(() => {
+                setDancersPose('pose-idle', lineObj.crown);
+                stopBGM();
+            }, lineObj.duration);
+            danceTimeoutIds.push(endId);
+        }
+
+        function executeDanceStep(index) {
+            currentLineIndex = index;
+            const name = getCleanName();
+            const theme = THEMES[currentThemeKey];
+            const lineObj = theme.lines[index];
+            const formattedText = formatLyric(lineObj.template, name);
+
+            // 1. 更新左側預覽高亮與步驟標籤
+            renderLyricsPreviewList();
+            document.getElementById('currentStepBadge').textContent = `段落 ${index + 1} / 6`;
+            updateStepDots(index);
+
+            // 2. 更新卡拉OK大字幕與彈跳動畫
+            const subEl = document.getElementById('karaokeSubtitle');
+            subEl.classList.remove('lyric-pop');
+            void subEl.offsetWidth;
+            subEl.textContent = formattedText;
+            subEl.classList.add('lyric-pop');
+
+            document.getElementById('danceMoveHint').textContent = lineObj.moveDesc;
+
+            // 3. 切換 5 位卡通人物的舞蹈動作與皇冠狀態
+            setDancersPose(lineObj.move, lineObj.crown);
+
+            // 4. 特殊舞台機關：第2句漢堡吉祥物衝刺、第4句加冕音效、第5句大撒花
+            if (lineObj.mascot) {
+                triggerMascotDash();
+            }
+            if (index === 3) {
+                // 皇冠就給 [名字] 戴！
+                playCrownFanfare();
+                burstConfetti(70);
+            } else if (index === 4) {
+                // 哇塞哇塞！閃閃發光惹人愛
+                burstConfetti(100);
+            }
+
+            // 5. 浮動可愛 Emoji
+            spawnFloatingEmojis(lineObj.emojis, 10);
+
+            // 6. Web Speech API 語音歡呼跟唱
+            if (ttsEnabled) {
+                speakLyric(formattedText);
+            }
+        }
+
+        /********************************************************************
+         * 7. Web Audio API 動感「上車舞」電子配樂合成器 (128 BPM)
+         ********************************************************************/
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContextClass();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // 歡樂大調上車舞旋律音階 (頻率 Hz)
+        const MELODY_NOTES = [
+            523.25, 659.25, 783.99, 659.25, // C5 E5 G5 E5 (來囉來囉)
+            880.00, 880.00, 783.99, 0,      // A5 A5 G5 -  (可愛可愛)
+            698.46, 698.46, 659.25, 659.25, // F5 F5 E5 E5 (皇冠就給)
+            587.33, 659.25, 523.25, 783.99  // D5 E5 C5 G5 (寶寶戴！)
+        ];
+
+        const BASS_NOTES = [
+            130.81, 261.63, 130.81, 261.63, // C3 C4
+            146.83, 293.66, 146.83, 293.66, // D3 D4
+            174.61, 349.23, 174.61, 349.23, // F3 F4
+            196.00, 392.00, 130.81, 261.63  // G3 G4 C3 C4
+        ];
+
+        function startBGM() {
+            initAudio();
+            stopBGM();
+            beatStep = 0;
+            // 128 BPM -> 8分音符約 234ms
+            bgmIntervalId = setInterval(() => {
+                if (!bgmEnabled) return;
+                playDanceBeatStep(beatStep);
+                beatStep = (beatStep + 1) % 16;
+            }, 234);
+        }
+
+        function stopBGM() {
+            if (bgmIntervalId) {
+                clearInterval(bgmIntervalId);
+                bgmIntervalId = null;
+            }
+        }
+
+        function playDanceBeatStep(step) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            // 1. 重低音大鼓 (Kick Drum on even steps: 0, 2, 4, 6...)
+            if (step % 2 === 0) {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(135, now);
+                osc.frequency.exponentialRampToValueAtTime(38, now + 0.14);
+
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.16);
+            }
+
+            // 2. 拍手節奏 (Clap/Hi-hat on odd steps or backbeat)
+            if (step % 4 === 2) {
+                playNoiseClap(now, 0.14);
+            } else if (step % 2 === 1) {
+                playNoiseClap(now, 0.04);
+            }
+
+            // 3. 彈跳感貝斯 (Bouncy Off-beat Bass)
+            const bassFreq = BASS_NOTES[step];
+            if (bassFreq) {
+                const bassOsc = audioCtx.createOscillator();
+                const bassGain = audioCtx.createGain();
+                bassOsc.type = 'triangle';
+                bassOsc.frequency.setValueAtTime(bassFreq, now);
+
+                bassGain.gain.setValueAtTime(0.16, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                bassOsc.connect(bassGain);
+                bassGain.connect(audioCtx.destination);
+                bassOsc.start(now);
+                bassOsc.stop(now + 0.19);
+            }
+
+            // 4. 歡樂電子主旋律 (Chiptune / Pop Lead)
+            const noteFreq = MELODY_NOTES[step];
+            if (noteFreq > 0) {
+                const leadOsc = audioCtx.createOscillator();
+                const leadGain = audioCtx.createGain();
+                leadOsc.type = 'square';
+                leadOsc.frequency.setValueAtTime(noteFreq, now);
+
+                leadGain.gain.setValueAtTime(0.075, now);
+                leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.19);
+
+                leadOsc.connect(leadGain);
+                leadGain.connect(audioCtx.destination);
+                leadOsc.start(now);
+                leadOsc.stop(now + 0.2);
+            }
+        }
+
+        function playNoiseClap(time, volume) {
+            if (!audioCtx) return;
+            const bufferSize = audioCtx.sampleRate * 0.06;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.value = 1200;
+
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(volume, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(audioCtx.destination);
+            noise.start(time);
+        }
+
+        // 皇冠加冕閃亮音效
+        function playCrownFanfare() {
+            if (!bgmEnabled) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+            notes.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + idx * 0.065);
+                gain.gain.setValueAtTime(0.2, now + idx * 0.065);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.065 + 0.35);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now + idx * 0.065);
+                osc.stop(now + idx * 0.065 + 0.36);
+            });
+        }
+
+        // 吉祥物衝刺哨音/滑音
+        function playWhistleSound() {
+            if (!bgmEnabled) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(420, now);
+            osc.frequency.exponentialRampToValueAtTime(1150, now + 0.22);
+            osc.frequency.exponentialRampToValueAtTime(680, now + 0.4);
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.45);
+        }
+
+        function playPopSound(freq = 600) {
+            if (!bgmEnabled) return;
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.4, now + 0.08);
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        }
+
+        /********************************************************************
+         * 8. Web Speech API 活潑語音跟唱 (TTS)
+         ********************************************************************/
+        function speakLyric(text) {
+            if (!('speechSynthesis' in window) || !ttsEnabled) return;
+            window.speechSynthesis.cancel();
+
+            // 移除表情符號避免語音唸出符號名稱
+            const cleanSpeechText = text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '');
+            const utter = new SpeechSynthesisUtterance(cleanSpeechText);
+            utter.lang = 'zh-TW';
+            utter.rate = 1.18;  // 配合上車舞輕快節奏
+            utter.pitch = 1.35; // 活潑可愛高音調
+            utter.volume = 1.0;
+
+            window.speechSynthesis.speak(utter);
+        }
+
+        function stopSpeech() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function toggleBGM() {
+            bgmEnabled = !bgmEnabled;
+            const btn = document.getElementById('toggleBgmBtn');
+            if (bgmEnabled) {
+                btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-pink-600/90 hover:bg-pink-500 text-white border border-pink-300/40 shadow transition';
+                btn.innerHTML = '<span>🔊</span> <span>電子配樂: 開啟</span>';
+                if (isDancing) startBGM();
+            } else {
+                btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-slate-700 text-slate-300 border border-slate-600 shadow transition';
+                btn.innerHTML = '<span>🔇</span> <span>電子配樂: 靜音</span>';
+                stopBGM();
+            }
+        }
+
+        function toggleTTS() {
+            ttsEnabled = !ttsEnabled;
+            const btn = document.getElementById('toggleTtsBtn');
+            if (ttsEnabled) {
+                btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-cyan-600/90 hover:bg-cyan-500 text-white border border-cyan-300/40 shadow transition';
+                btn.innerHTML = '<span>🗣️</span> <span>語音歡呼: 開啟</span>';
+            } else {
+                btn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold bg-slate-700 text-slate-300 border border-slate-600 shadow transition';
+                btn.innerHTML = '<span>🙊</span> <span>語音歡呼: 關閉</span>';
+                stopSpeech();
+            }
+        }
+
+        /********************************************************************
+         * 9. 舞台浮動表情與五彩紙屑禮炮 (Confetti Canvas)
+         ********************************************************************/
+        function spawnFloatingEmojis(emojiArray, count = 8) {
+            const container = document.getElementById('floatingEmojiContainer');
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const el = document.createElement('div');
+                    el.className = 'floating-emoji text-2xl sm:text-3xl';
+                    el.textContent = emojiArray[Math.floor(Math.random() * emojiArray.length)];
+                    el.style.left = `${10 + Math.random() * 80}%`;
+                    el.style.bottom = `${15 + Math.random() * 25}%`;
+                    container.appendChild(el);
+                    setTimeout(() => el.remove(), 1800);
+                }, i * 160);
+            }
+        }
+
+        // Canvas Confetti 系統
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        let confettiParticles = [];
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        function burstConfetti(amount = 65) {
+            resizeCanvas();
+            const colors = ['#facc15', '#f472b6', '#38bdf8', '#4ade80', '#c084fc', '#fb923c'];
+            for (let i = 0; i < amount; i++) {
+                confettiParticles.push({
+                    x: canvas.width * (0.2 + Math.random() * 0.6),
+                    y: canvas.height * 0.55,
+                    vx: (Math.random() - 0.5) * 13,
+                    vy: -Math.random() * 12 - 5,
+                    size: Math.random() * 8 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    rotation: Math.random() * 360,
+                    vRot: (Math.random() - 0.5) * 12
+                });
+            }
+        }
+
+        function burstConfettiAndCheer() {
+            burstConfetti(85);
+            playCrownFanfare();
+            spawnFloatingEmojis(['👑', '🎉', '💖', '✨', '🥳'], 10);
+        }
+
+        function updateConfettiLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = confettiParticles.length - 1; i >= 0; i--) {
+                const p = confettiParticles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.32; // 重力
+                p.rotation += p.vRot;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rotation * Math.PI) / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+                ctx.restore();
+
+                if (p.y > canvas.height + 20) {
+                    confettiParticles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(updateConfettiLoop);
+        }
+
+        // 初始化頁面
+        window.onload = function () {
+            renderStageDancers();
+            handleNamePreview();
+            resizeCanvas();
+            updateConfettiLoop();
+        };
+    </script>
+</body>
+</html>
